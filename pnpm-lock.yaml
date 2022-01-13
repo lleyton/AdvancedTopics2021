@@ -10,31 +10,6 @@ importers:
       prettier: 2.5.1
       turbo: 1.0.26
 
-  apps/docs:
-    specifiers:
-      '@types/react': 17.0.37
-      config: workspace:*
-      eslint: 7.32.0
-      next: 12.0.7
-      next-transpile-modules: 9.0.0
-      react: 17.0.2
-      react-dom: 17.0.2
-      tsconfig: workspace:*
-      typescript: ^4.5.3
-      ui: workspace:*
-    dependencies:
-      next: 12.0.7_react-dom@17.0.2+react@17.0.2
-      react: 17.0.2
-      react-dom: 17.0.2_react@17.0.2
-      ui: link:../../packages/ui
-    devDependencies:
-      '@types/react': 17.0.37
-      config: link:../../packages/config
-      eslint: 7.32.0
-      next-transpile-modules: 9.0.0
-      tsconfig: link:../../packages/tsconfig
-      typescript: 4.5.4
-
   apps/web:
     specifiers:
       '@types/react': 17.0.37
@@ -46,12 +21,10 @@ importers:
       react-dom: 17.0.2
       tsconfig: workspace:*
       typescript: ^4.5.3
-      ui: workspace:*
     dependencies:
       next: 12.0.7_react-dom@17.0.2+react@17.0.2
       react: 17.0.2
       react-dom: 17.0.2_react@17.0.2
-      ui: link:../../packages/ui
     devDependencies:
       '@types/react': 17.0.37
       config: link:../../packages/config
@@ -70,20 +43,6 @@ importers:
 
   packages/tsconfig:
     specifiers: {}
-
-  packages/ui:
-    specifiers:
-      '@types/react': ^17.0.37
-      '@types/react-dom': ^17.0.11
-      config: workspace:*
-      tsconfig: workspace:*
-      typescript: ^4.5.3
-    devDependencies:
-      '@types/react': 17.0.38
-      '@types/react-dom': 17.0.11
-      config: link:../config
-      tsconfig: link:../tsconfig
-      typescript: 4.5.4
 
 packages:
 
@@ -388,22 +347,8 @@ packages:
     resolution: {integrity: sha512-rZ5drC/jWjrArrS8BR6SIr4cWpW09RNTYt9AMZo3Jwwif+iacXAqgVjm0B0Bv/S1jhDXKHqRVNCbACkJ89RAnQ==}
     dev: true
 
-  /@types/react-dom/17.0.11:
-    resolution: {integrity: sha512-f96K3k+24RaLGVu/Y2Ng3e1EbZ8/cVJvypZWd7cy0ofCBaf2lcM46xNhycMZ2xGwbBjRql7hOlZ+e2WlJ5MH3Q==}
-    dependencies:
-      '@types/react': 17.0.38
-    dev: true
-
   /@types/react/17.0.37:
     resolution: {integrity: sha512-2FS1oTqBGcH/s0E+CjrCCR9+JMpsu9b69RTFO+40ua43ZqP5MmQ4iUde/dMjWR909KxZwmOQIFq6AV6NjEG5xg==}
-    dependencies:
-      '@types/prop-types': 15.7.4
-      '@types/scheduler': 0.16.2
-      csstype: 3.0.10
-    dev: true
-
-  /@types/react/17.0.38:
-    resolution: {integrity: sha512-SI92X1IA+FMnP3qM5m4QReluXzhcmovhZnLNm3pyeQlooi02qI7sLiepEYqT678uNiyc25XfCqxREFpy3W7YhQ==}
     dependencies:
       '@types/prop-types': 15.7.4
       '@types/scheduler': 0.16.2
