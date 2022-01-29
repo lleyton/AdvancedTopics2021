@@ -1,0 +1,109 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id      String   @id
+  members Member[]
+}
+
+model Project {
+  id      String   @id @default(uuid())
+  name    String
+  apps    App[]
+  members Member[]
+}
+
+enum Role {
+  NORMAL
+  ADMIN
+  OWNER
+}
+
+model Member {
+  userID    String
+  projectID String
+  user      User    @relation(fields: [userID], references: [id])
+  project   Project @relation(fields: [projectID], references: [id])
+  role      Role    @default(NORMAL)
+
+  @@id([userID, projectID])
+}
+
+enum ContainerModel {
+  LIGHT
+  BASIC
+  PLUS
+  UBER
+}
+
+model App {
+  id          String         @id @default(uuid())
+  name        String
+  repo        String
+  model       ContainerModel
+  minReplicas Int
+  maxReplicas Int
+  createdAt   DateTime       @default(now())
+  projectID   String
+  project     Project        @relation(fields: [projectID], references: [id])
+  Deployment  Deployment[]
+  variables   Variable[]
+}
+
+enum DeploymentStatus {
+  PENDING
+  DEPLOYING
+  ACTIVE
+  FAILED
+  DEAD
+}
+
+enum DeploymentType {
+  PREVIEW
+  PRODUCTION
+}
+
+model Deployment {
+  id       String           @id @default(uuid())
+  app      App              @relation(fields: [appID], references: [id])
+  commitID String
+  status   DeploymentStatus
+  appID    String
+  branch String
+  createdAt DateTime @default(now())
+  type  DeploymentType
+  commitMessage String
+
+  @@unique([appID, commitID, branch])
+}
+
+enum VariableScope {
+  PREVIEW
+  PRODUCTION
+}
+
+enum VariableUsage {
+  BUILD
+  RUN
+}
+
+model Variable {
+  id String @id @default(uuid())
+  app App @relation(fields: [appID], references: [id])
+  appID String
+  usage VariableUsage
+  scope VariableScope
+  name String
+  value String
+
+  @@unique([appID, usage, scope, name])
+}
