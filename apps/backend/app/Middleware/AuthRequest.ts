@@ -7,20 +7,24 @@ export default class AuthRequest {
     const token = ctx.request.header('authorization')
     if (!token) return ctx.response.unauthorized({ error: 'AuthorizationRequired' })
 
-    const res = await id.getUserInfo(token)
-    if (!res.ok) return ctx.response.unauthorized({ error: 'InvalidToken' })
+    let res
+    try {
+      res = await id.getUserFromToken(token)
+    } catch {
+      return ctx.response.unauthorized({ error: 'InvalidToken' })
+    }
 
     await db.user.upsert({
       where: {
-        id: res.user.id,
+        id: res.id,
       },
       update: {},
       create: {
-        id: res.user.id,
+        id: res.id,
       },
     })
 
-    ctx.user = res.user
+    ctx.user = res
     await next()
   }
 }
