@@ -1,19 +1,5 @@
 {
-  "extends": "tsconfig/adonis.json",
-  "include": ["**/*"],
-  "exclude": ["node_modules", "build"],
-  "compilerOptions": {
-    "outDir": "build",
-    "rootDir": "./",
-    "strict": true,
-    "sourceMap": true,
-    "preserveSymlinks": false,
-    "paths": {
-      "App/*": ["./app/*"],
-      "Config/*": ["./config/*"],
-      "Contracts/*": ["./contracts/*"],
-      "Database/*": ["./database/*"]
-    },
-    "types": ["@adonisjs/core", "@adonisjs/repl"]
-  }
+  "extends": "tsconfig/server.json",
+  "include": ["**/*.ts"],
+  "exclude": ["node_modules"]
 }

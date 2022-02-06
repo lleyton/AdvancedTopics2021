@@ -34,7 +34,6 @@ model Member {
   user      User    @relation(fields: [userID], references: [id])
   project   Project @relation(fields: [projectID], references: [id])
   role      Role    @default(NORMAL)
-
   @@id([userID, projectID])
 }
 
@@ -82,7 +81,6 @@ model Deployment {
   createdAt DateTime @default(now())
   type  DeploymentType
   commitMessage String
-
   @@unique([appID, commitID, branch])
 }
 
@@ -104,6 +102,5 @@ model Variable {
   scope VariableScope
   name String
   value String
-
   @@unique([appID, usage, scope, name])
 }
