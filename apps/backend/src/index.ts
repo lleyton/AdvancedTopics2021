@@ -6,8 +6,13 @@ import { TRPCError } from "@trpc/server";
 import http from "http";
 import { prisma } from "./services/prisma";
 import { Context, port } from "./constants";
+import { apps } from "./routers/apps";
+import { projects } from "./routers/projects";
 
-const appRouter = trpc.router<Context>();
+const appRouter = trpc
+  .router<Context>()
+  .merge("apps.", apps)
+  .merge("projects.", projects);
 
 const handler = createHTTPHandler({
   router: appRouter,
@@ -38,18 +43,23 @@ const handler = createHTTPHandler({
   },
 });
 
-http
-  .createServer((req, res) => {
-    res.setHeader("Access-Control-Allow-Origin", "*");
-    res.setHeader("Access-Control-Request-Method", "*");
-    res.setHeader("Access-Control-Allow-Methods", "OPTIONS, GET");
-    res.setHeader("Access-Control-Allow-Headers", "*");
-    if (req.method === "OPTIONS") {
-      res.writeHead(200);
-      res.end();
-      return;
-    }
-    handler(req, res);
-  })
-  .listen(port, () => console.log("Backend is listening on port: " + port));
 export type AppRouter = typeof appRouter;
+
+const main = async () => {
+  http
+    .createServer((req, res) => {
+      res.setHeader("Access-Control-Allow-Origin", "*");
+      res.setHeader("Access-Control-Request-Method", "*");
+      res.setHeader("Access-Control-Allow-Methods", "OPTIONS, GET");
+      res.setHeader("Access-Control-Allow-Headers", "*");
+      if (req.method === "OPTIONS") {
+        res.writeHead(200);
+        res.end();
+        return;
+      }
+      handler(req, res);
+    })
+    .listen(port, () => console.log("Backend is listening on port: " + port));
+};
+
+main();
