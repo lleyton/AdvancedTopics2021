@@ -24,4 +24,6 @@ export default Env.rules({
   DATABASE_URL: Env.schema.string(),
   REGISTRY_TOKEN: Env.schema.string(),
   NOMAD_TOKEN: Env.schema.string(),
+  INNID_ID: Env.schema.string(),
+  INNID_TOKEN: Env.schema.string(),
 })

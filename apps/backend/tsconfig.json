@@ -1,5 +1,5 @@
 {
-  "extends": "./node_modules/adonis-preset-ts/tsconfig",
+  "extends": "tsconfig/adonis.json",
   "include": ["**/*"],
   "exclude": ["node_modules", "build"],
   "compilerOptions": {
@@ -7,12 +7,13 @@
     "rootDir": "./",
     "strict": true,
     "sourceMap": true,
+    "preserveSymlinks": false,
     "paths": {
       "App/*": ["./app/*"],
       "Config/*": ["./config/*"],
       "Contracts/*": ["./contracts/*"],
       "Database/*": ["./database/*"]
     },
-    "types": ["@adonisjs/core", "@adonisjs/repl", "@rocketseat/adonis-bull"]
+    "types": ["@adonisjs/core", "@adonisjs/repl"]
   }
 }
