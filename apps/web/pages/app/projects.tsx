@@ -5,6 +5,7 @@ import {
   Input,
   Loading,
   Modal,
+  Spacer,
   Text,
 } from "@nextui-org/react";
 import { useState } from "react";
@@ -77,7 +78,12 @@ const NewProject = () => {
           </Button>
         </Modal.Footer>
       </Modal>
-      <Card clickable bordered onClick={() => setVisible(true)}>
+      <Card
+        clickable
+        bordered
+        onClick={() => setVisible(true)}
+        css={{ mw: "400px" }}
+      >
         <Text size={25} weight="bold">
           New Project
         </Text>
@@ -96,7 +102,7 @@ const Projects = () => {
   return (
     <Container>
       <Text h1>Projects</Text>
-      <Container>
+      <Container gap={0} wrap="wrap">
         {projects.data?.map((id) => (
           <ProjectCard id={id} />
         ))}
