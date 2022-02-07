@@ -12,10 +12,13 @@ import { useState } from "react";
 import { useAuthenticated } from "../../state/auth";
 import { trpc } from "../../util/trpc";
 
-const ProjectCard: React.FC<{ id: string }> = () => {
+const ProjectCard: React.FC<{ id: string }> = ({ id }) => {
+  const project = trpc.useQuery(["projects.get", { id }]);
   return (
     <Card clickable bordered css={{ mw: "400px" }}>
-      <p>A clickable card.</p>
+      <Text size={25} weight="bold">
+        {project.data?.name}
+      </Text>
     </Card>
   );
 };
@@ -102,7 +105,8 @@ const Projects = () => {
   return (
     <Container>
       <Text h1>Projects</Text>
-      <Container gap={0} wrap="wrap">
+      <Spacer y="sm" />
+      <Container gap={0} wrap="wrap" display="flex" css={{ gap: 10 }}>
         {projects.data?.map((id) => (
           <ProjectCard id={id} />
         ))}
