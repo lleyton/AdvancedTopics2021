@@ -3,7 +3,7 @@ import { NextUIProvider, createTheme } from "@nextui-org/react";
 import { ThemeProvider as NextThemesProvider } from "next-themes";
 import { withTRPC } from "@trpc/next";
 import type { AppRouter } from "backend";
-import { createReactQueryHooks } from "@trpc/react";
+import Auth from "../state/auth";
 
 const lightTheme = createTheme({
   type: "light",
@@ -24,7 +24,9 @@ const App = ({ Component, pageProps }: AppProps) => {
       }}
     >
       <NextUIProvider>
-        <Component {...pageProps} />
+        <Auth.Provider>
+          <Component {...pageProps} />
+        </Auth.Provider>
       </NextUIProvider>
     </NextThemesProvider>
   );
