@@ -8,14 +8,22 @@ import {
   Spacer,
   Text,
 } from "@nextui-org/react";
+import { useRouter } from "next/router";
 import { useState } from "react";
-import { useAuthenticated } from "../../state/auth";
-import { trpc } from "../../util/trpc";
+import { useAuthenticated } from "../../../state/auth";
+import { trpc } from "../../../util/trpc";
 
 const ProjectCard: React.FC<{ id: string }> = ({ id }) => {
   const project = trpc.useQuery(["projects.get", { id }]);
+  const router = useRouter();
+
   return (
-    <Card clickable bordered css={{ mw: "400px" }}>
+    <Card
+      clickable
+      bordered
+      css={{ mw: "400px" }}
+      onClick={() => router.push("/app/projects/" + id)}
+    >
       <Text size={25} weight="bold">
         {project.data?.name}
       </Text>
@@ -105,7 +113,7 @@ const Projects = () => {
   return (
     <Container>
       <Text h1>Projects</Text>
-      <Spacer y="sm" />
+      <Spacer y={0.5} x={0} />
       <Container gap={0} wrap="wrap" display="flex" css={{ gap: 10 }}>
         {projects.data?.map((id) => (
           <ProjectCard id={id} />
