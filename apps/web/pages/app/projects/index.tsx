@@ -18,16 +18,17 @@ const ProjectCard: React.FC<{ id: string }> = ({ id }) => {
   const router = useRouter();
 
   return (
-    <Card
-      clickable
-      bordered
-      css={{ mw: "400px" }}
+    <div
+      // clickable
+      // bordered
+      // css={{ mw: "400px" }}
       onClick={() => router.push("/app/projects/" + id)}
+      className="max-w-2xl"
     >
       <Text size={25} weight="bold">
         {project.data?.name}
       </Text>
-    </Card>
+    </div>
   );
 };
 
@@ -89,17 +90,13 @@ const NewProject = () => {
           </Button>
         </Modal.Footer>
       </Modal>
-      <Card
-        clickable
-        bordered
+      <div
         onClick={() => setVisible(true)}
-        css={{ mw: "400px" }}
+        className="max-w-3xl bg-zinc-800 p-4 rounded-xl shadow-lg "
       >
-        <Text size={25} weight="bold">
-          New Project
-        </Text>
-        <Text size={15}>Create a new project</Text>
-      </Card>
+        <p className="font-bold text-3xl">New Project</p>
+        <p>Create a new project</p>
+      </div>
     </>
   );
 };
@@ -111,16 +108,15 @@ const Projects = () => {
   });
 
   return (
-    <Container>
-      <Text h1>Projects</Text>
-      <Spacer y={0.5} x={0} />
-      <Container gap={0} wrap="wrap" display="flex" css={{ gap: 10 }}>
+    <div className="p-5">
+      <h1 className="font-black text-4xl mb-5">Projects</h1>
+      <div className="flex gap-5">
         {projects.data?.map((id) => (
           <ProjectCard id={id} />
         ))}
         <NewProject />
-      </Container>
-    </Container>
+      </div>
+    </div>
   );
 };
 

@@ -1,7 +1,13 @@
-import { Container, Loading } from "@nextui-org/react";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
 import Auth from "../state/auth";
+import {
+  faCircleNotch,
+  faCompactDisc,
+  faRecordVinyl,
+  faSpinner,
+} from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 const Login = () => {
   const router = useRouter();
@@ -26,18 +32,20 @@ const Login = () => {
     }
 
     setToken(token);
-    router.replace("/notebooks");
+    router.replace("/app/projects");
   }, []);
 
   return (
-    <Container
-      css={{ display: "flex", height: "100vh" }}
-      alignItems="center"
-      justify="center"
-      fluid
-    >
-      <Loading>Logging In...</Loading>
-    </Container>
+    <div className="flex justify-center items-center min-h-screen">
+      <div className="text-center">
+        <FontAwesomeIcon
+          icon={faCircleNotch}
+          size="2x"
+          className="animate-spin text-inndigo"
+        />
+        <p>Logging In...</p>
+      </div>
+    </div>
   );
 };
 

@@ -20,7 +20,8 @@
     "eg2.vscode-npm-script",
     "ms-vsliveshare.vsliveshare",
     "esbenp.prettier-vscode",
-    "prisma.prisma"
+    "prisma.prisma",
+    "bradlc.vscode-tailwindcss"
   ],
 
   // Use 'forwardPorts' to make a list of ports inside the container available locally.
