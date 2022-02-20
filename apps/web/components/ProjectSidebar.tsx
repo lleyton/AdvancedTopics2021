@@ -13,42 +13,58 @@ const ProjectSidebar = () => {
   return (
     <div className="p-3 w-full max-w-[250px] bg-neutral-800">
       <h1 className="text-3xl font-black mb-2">Testing</h1>
-      <div>
-        <div>
-          <Link
-            href={{
-              pathname: "/app/projects/[projectID]/apps",
-              query: { projectID: router.query["projectID"] },
-            }}
+      <div className="flex flex-col gap-1">
+        <Link
+          href={{
+            pathname: "/app/projects/[projectID]/apps",
+            query: { projectID: router.query["projectID"] },
+          }}
+        >
+          <div
+            className={`flex p-2 gap-2 text-md items-center rounded-md hover:bg-neutral-700 cursor-pointer ${
+              router.pathname === `/app/projects/[projectID]/apps`
+                ? "bg-blue-500"
+                : ""
+            }`}
           >
-            <div className={`flex p-2 gap-2 text-md items-center rounded-md hover:bg-neutral-700 cursor-pointer ${router.}`}>
-              <FontAwesomeIcon icon={faServer} fixedWidth />
-              <span>Apps</span>
-            </div>
-          </Link>
-          <Link
-            href={{
-              pathname: "/app/projects/[projectID]/members",
-              query: { projectID: router.query["projectID"] },
-            }}
+            <FontAwesomeIcon icon={faServer} fixedWidth />
+            <span>Apps</span>
+          </div>
+        </Link>
+        <Link
+          href={{
+            pathname: "/app/projects/[projectID]/members",
+            query: { projectID: router.query["projectID"] },
+          }}
+        >
+          <div
+            className={`flex p-2 gap-2 text-md items-center rounded-md hover:bg-neutral-700 cursor-pointer ${
+              router.pathname === `/app/projects/[projectID]/members`
+                ? "bg-blue-500"
+                : ""
+            }`}
           >
-            <div className="flex p-2 gap-2 text-md items-center rounded-md hover:bg-neutral-700 cursor-pointer">
-              <FontAwesomeIcon icon={faUserGroup} fixedWidth />
-              <span>Members</span>
-            </div>
-          </Link>
-          <Link
-            href={{
-              pathname: "/app/projects/[projectID]/settings",
-              query: { projectID: router.query["projectID"] },
-            }}
+            <FontAwesomeIcon icon={faUserGroup} fixedWidth />
+            <span>Members</span>
+          </div>
+        </Link>
+        <Link
+          href={{
+            pathname: "/app/projects/[projectID]/settings",
+            query: { projectID: router.query["projectID"] },
+          }}
+        >
+          <div
+            className={`flex p-2 gap-2 text-md items-center rounded-md hover:bg-neutral-700 cursor-pointer ${
+              router.pathname === `/app/projects/[projectID]/settings`
+                ? "bg-blue-500"
+                : ""
+            }`}
           >
-            <div className="flex p-2 gap-2 text-md items-center rounded-md hover:bg-neutral-700 cursor-pointer">
-              <FontAwesomeIcon icon={faCog} fixedWidth />
-              <span>Settings</span>
-            </div>
-          </Link>
-        </div>
+            <FontAwesomeIcon icon={faCog} fixedWidth />
+            <span>Settings</span>
+          </div>
+        </Link>
       </div>
     </div>
   );
