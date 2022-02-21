@@ -8,6 +8,7 @@ import { prisma } from "./services/prisma";
 import { Context, port } from "./constants";
 import { apps } from "./routers/apps";
 import { projects } from "./routers/projects";
+import './services/bullmq'
 
 const appRouter = trpc
   .router<Context>()

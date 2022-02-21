@@ -10,7 +10,10 @@
     "@innatical/id": "^2.0.1",
     "@prisma/client": "^3.9.2",
     "@trpc/server": "^9.19.0",
+    "axios": "^0.26.0",
+    "bullmq": "^1.74.1",
     "dotenv": "^16.0.0",
+    "isomorphic-git": "^1.12.0",
     "zod": "^3.11.6"
   },
   "devDependencies": {
