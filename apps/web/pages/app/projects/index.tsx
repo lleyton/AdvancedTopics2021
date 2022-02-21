@@ -97,24 +97,26 @@ const NewProject: FC<{ isOpen: boolean; closeModal: () => void }> = ({
   );
 };
 
-const ProjectRow: FC<{ id: string }> = ({ id }) => {
-  const project = trpc.useQuery(["projects.get", { id }]);
-
+const ProjectRow: FC<{
+  id: string;
+  name: string;
+  apps: number;
+  members: number;
+}> = ({ id, name, apps, members }) => {
   return (
     <Link
       href={{
-        pathname: "/app/projects/[projectID]/settings",
+        pathname: "/app/projects/[projectID]/apps",
         query: { projectID: id },
       }}
     >
       <a className="px-5 py-3 bg-neutral-800 hover:bg-neutral-700 cursor-pointer flex items-center gap-5 first:rounded-t-lg last:rounded-b-lg">
         <div>
-          <p className="font-bold">{project.data?.name}</p>
+          <p className="font-bold">{name}</p>
           <p className="text-xs text-neutral-400">
-            {project.data?._count.apps} App
-            {project.data?._count.apps !== 1 ? "s" : ""} •{" "}
-            {project.data?._count.members} Member
-            {project.data?._count.members !== 1 ? "s" : ""}
+            {apps} App
+            {apps !== 1 ? "s" : ""} • {members} Member
+            {members !== 1 ? "s" : ""}
           </p>
         </div>
       </a>
@@ -128,6 +130,20 @@ const Projects = () => {
     enabled: authenticated,
   });
   const [showNewProject, setShowNewProject] = useState(false);
+
+  if (projects.isLoading)
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="text-center">
+          <FontAwesomeIcon
+            icon={faCircleNotch}
+            size="2x"
+            className="animate-spin text-inndigo"
+          />
+          <p>Loading Projects...</p>
+        </div>
+      </div>
+    );
 
   return (
     <div className="flex min-h-screen">
@@ -143,8 +159,14 @@ const Projects = () => {
           </button>
         </div>
         <div className="flex flex-col flex-1 divide-y-[0.75px] divide-neutral-700">
-          {projects.data?.map((id) => (
-            <ProjectRow key={id} id={id} />
+          {projects.data?.map((project) => (
+            <ProjectRow
+              key={project.id}
+              id={project.id}
+              name={project.name}
+              apps={project._count.apps}
+              members={project._count.members}
+            />
           ))}
           <NewProject
             isOpen={showNewProject}

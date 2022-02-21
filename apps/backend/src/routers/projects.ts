@@ -27,9 +27,12 @@ export const projects = trpc
             },
           },
         },
+        include: {
+          _count: true
+        }
       });
 
-      return projects.map((project) => project.id);
+      return projects;
     },
   })
   .query("get", {

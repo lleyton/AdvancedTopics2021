@@ -42,13 +42,17 @@ export const apps = trpc
           id: projectID,
         },
         include: {
-          apps: true,
+          apps: {
+            include: {
+              _count: true,
+            },
+          },
         },
       });
 
       if (!project) throw new TRPCError({ code: "NOT_FOUND" });
 
-      return project.apps.map((app) => app.id);
+      return project.apps;
     },
   })
   .query("get", {
