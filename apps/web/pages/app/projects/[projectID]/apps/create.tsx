@@ -1,9 +1,13 @@
 import { faGit, faGithub } from "@fortawesome/free-brands-svg-icons";
-import { faChevronRight } from "@fortawesome/free-solid-svg-icons";
+import {
+  faChevronRight,
+  faCircleNotch,
+} from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { Dispatch, FC, SetStateAction, useState } from "react";
+import { trpc } from "../../../../../util/trpc";
 
 const FirstStage: FC<{
   name: string;
@@ -207,16 +211,17 @@ const ThirdStage: FC<{
     SetStateAction<{
       minReplicas?: number;
       maxReplicas?: number;
-      plan?: "LIGHT" | "BASIC" | "PLUS" | "UBER";
+      model?: "LIGHT" | "BASIC" | "PLUS" | "UBER";
     }>
   >;
+  submit: () => void;
   specs: {
     minReplicas?: number;
     maxReplicas?: number;
-    plan?: "LIGHT" | "BASIC" | "PLUS" | "UBER";
+    model?: "LIGHT" | "BASIC" | "PLUS" | "UBER";
   };
-}> = ({ specs, setSpecs, setStage }) => {
-  const router = useRouter();
+  isSubmitting: boolean;
+}> = ({ specs, setSpecs, setStage, submit, isSubmitting }) => {
   return (
     <div className="flex flex-1 flex-col p-5 gap-5 h-screen">
       <div className="w-96 mx-auto p-5 flex flex-col h-full items-center">
@@ -238,6 +243,11 @@ const ThirdStage: FC<{
             Minimum Replicas
           </label>
           <input
+            onKeyPress={(event) => {
+              if (!/[0-9]/.test(event.key)) {
+                event.preventDefault();
+              }
+            }}
             onChange={(event) => {
               setSpecs((specs) => ({
                 ...specs,
@@ -245,7 +255,7 @@ const ThirdStage: FC<{
               }));
             }}
             value={specs.minReplicas}
-            type="number"
+            type="text"
             id="min-replicas"
             min={1}
             className="mt-2 block w-full p-4 rounded-md mb-5 bg-neutral-800 border-neutral-700"
@@ -255,6 +265,11 @@ const ThirdStage: FC<{
             Maximum Replicas
           </label>
           <input
+            onKeyPress={(event) => {
+              if (!/[0-9]/.test(event.key)) {
+                event.preventDefault();
+              }
+            }}
             onChange={(event) => {
               setSpecs((specs) => ({
                 ...specs,
@@ -262,7 +277,7 @@ const ThirdStage: FC<{
               }));
             }}
             value={specs.maxReplicas}
-            type="number"
+            type="text"
             id="max-replicas"
             min={1}
             className="mt-2 block w-full p-4 rounded-md mb-5 bg-neutral-800 border-neutral-700"
@@ -275,10 +290,11 @@ const ThirdStage: FC<{
             onChange={(event) => {
               setSpecs((specs) => ({
                 ...specs,
-                plan: event.target.value as any,
+                model: event.target.value as any,
               }));
             }}
-            value={specs.maxReplicas}
+            value={specs.model}
+            defaultValue="LIGHT"
             className="mt-2 block w-full p-4 rounded-md mb-5 bg-neutral-800 border-neutral-700"
           >
             <option value="LIGHT">Light</option>
@@ -295,42 +311,18 @@ const ThirdStage: FC<{
             <button
               type="button"
               className="bg-inndigo p-3 w-24 rounded-lg text-white"
-              //   onClick={async () => {
-              //     const url = projectCreationDetails?.repo?.replace(
-              //       /^(http|https):\/\//g,
-              //       ""
-              //     );
-              //     console.log(url);
-              //     const fullURL = `https://${
-              //       projectCreationDetails?.username
-              //         ? projectCreationDetails.username
-              //         : ""
-              //     }${
-              //       projectCreationDetails?.password
-              //         ? ":" + projectCreationDetails.password
-              //         : ""
-              //     }${projectCreationDetails?.username ? "@" : ""}${url}`;
-              //     await API.post(
-              //       `/projects/${project}/apps`,
-              //       {
-              //         name: projectCreationDetails?.name,
-              //         minReplicas: projectCreationDetails?.minReplicas,
-              //         maxReplicas: projectCreationDetails?.maxReplicas,
-              //         model:
-              //           projectCreationDetails?.plan?.toUpperCase() ?? "LIGHT",
-              //         repo: fullURL,
-              //       },
-              //       {
-              //         headers: {
-              //           authorization: localStorage.getItem("token")!,
-              //         },
-              //       }
-              //     );
-              //     queryClient.refetchQueries(["members", project]);
-              //     router.push("/apps");
-              //   }}
+              onClick={() => submit()}
+              disabled={isSubmitting}
             >
-              Complete
+              {!isSubmitting ? (
+                "Complete"
+              ) : (
+                <FontAwesomeIcon
+                  icon={faCircleNotch}
+                  size="2x"
+                  className="animate-spin text-white"
+                />
+              )}
             </button>
           </div>
         </div>
@@ -340,6 +332,7 @@ const ThirdStage: FC<{
 };
 
 const Create = () => {
+  const router = useRouter();
   const [stage, setStage] = useState<0 | 1 | 2>(0);
   const [name, setName] = useState("");
   const [repo, setRepo] = useState<{
@@ -350,13 +343,46 @@ const Create = () => {
   const [specs, setSpecs] = useState<{
     minReplicas?: number;
     maxReplicas?: number;
-    plan?: "LIGHT" | "BASIC" | "PLUS" | "UBER";
+    model?: "LIGHT" | "BASIC" | "PLUS" | "UBER";
   }>({});
+
+  const trpcContext = trpc.useContext();
+
+  const createApp = trpc.useMutation("apps.create", {
+    async onSuccess() {
+      await trpcContext.refetchQueries([
+        "apps.all",
+        { projectID: router.query["projectID"] as string },
+      ]);
+      router.push({
+        pathname: "/app/projects/[projectID]/apps",
+        query: { projectID: router.query["projectID"] },
+      });
+    },
+  });
 
   const stages = [
     <FirstStage name={name} setName={setName} setStage={setStage} />,
     <SecondStage setStage={setStage} repo={repo} setRepo={setRepo} />,
-    <ThirdStage setStage={setStage} specs={specs} setSpecs={setSpecs} />,
+    <ThirdStage
+      setStage={setStage}
+      specs={specs}
+      setSpecs={setSpecs}
+      submit={() => {
+        const fullURL = `https://${repo?.username ? repo.username : ""}${
+          repo?.password ? ":" + repo.password : ""
+        }${repo?.username ? "@" : ""}${repo.repo}`;
+        createApp.mutate({
+          projectID: router.query["projectID"] as string,
+          name,
+          repo: fullURL,
+          minReplicas: specs.minReplicas!,
+          maxReplicas: specs.maxReplicas!,
+          model: specs.model!,
+        });
+      }}
+      isSubmitting={createApp.isLoading}
+    />,
   ];
 
   return stages[stage];

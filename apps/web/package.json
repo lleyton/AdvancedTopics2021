@@ -17,6 +17,7 @@
     "@headlessui/react": "^1.5.0",
     "@innatical/innstate": "^1.0.4",
     "@nextui-org/react": "^1.0.2-beta.4",
+    "@tailwindcss/forms": "^0.4.0",
     "@trpc/client": "^9.19.0",
     "@trpc/next": "^9.19.0",
     "@trpc/react": "^9.19.0",
