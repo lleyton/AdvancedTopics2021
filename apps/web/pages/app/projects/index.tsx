@@ -1,103 +1,124 @@
-import {
-  Button,
-  Card,
-  Container,
-  Input,
-  Loading,
-  Modal,
-  Spacer,
-  Text,
-} from "@nextui-org/react";
-import { useRouter } from "next/router";
-import { useState } from "react";
+import { faCircleNotch, faPlus } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { Dialog, Transition } from "@headlessui/react";
+import Link from "next/link";
+import { FC, Fragment, useState } from "react";
 import { useAuthenticated } from "../../../state/auth";
 import { trpc } from "../../../util/trpc";
 
-const ProjectCard: React.FC<{ id: string }> = ({ id }) => {
-  const project = trpc.useQuery(["projects.get", { id }]);
-  const router = useRouter();
-
-  return (
-    <div
-      // clickable
-      // bordered
-      // css={{ mw: "400px" }}
-      onClick={() => router.push("/app/projects/" + id)}
-      className="max-w-2xl"
-    >
-      <Text size={25} weight="bold">
-        {project.data?.name}
-      </Text>
-    </div>
-  );
-};
-
-const NewProject = () => {
-  const [visible, setVisible] = useState(false);
-  const remoteContext = trpc.useContext();
-  const createProject = trpc.useMutation("projects.create", {
-    onSuccess: () => {
-      closeHandler();
-      remoteContext.refetchQueries(["projects.all"]);
+const NewProject: FC<{ isOpen: boolean; closeModal: () => void }> = ({
+  isOpen,
+  closeModal,
+}) => {
+  const trpcContext = trpc.useContext();
+  const createProject = trpc.useMutation(["projects.create"], {
+    async onSuccess() {
+      await trpcContext.refetchQueries(["projects.all"]);
+      closeModal();
     },
   });
   const [name, setName] = useState("");
-  const closeHandler = () => {
-    if (createProject.isLoading) return;
-    setVisible(false);
-    setName("");
-  };
 
   return (
-    <>
-      <Modal
-        closeButton={!createProject.isLoading}
-        blur
-        aria-labelledby="modal-title"
-        open={visible}
-        onClose={closeHandler}
+    <Transition appear show={isOpen} as={Fragment}>
+      <Dialog
+        as="div"
+        className="fixed inset-0 z-10 overflow-y-auto"
+        onClose={closeModal}
       >
-        <Modal.Header>
-          <Text id="modal-title" size={18}>
-            New Project
-          </Text>
-        </Modal.Header>
-        <Modal.Body>
-          <Input
-            clearable
-            bordered
-            fullWidth
-            color="primary"
-            size="lg"
-            placeholder="Name"
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-          />
-        </Modal.Body>
-        <Modal.Footer>
-          <Button
-            auto
-            onClick={() =>
-              !createProject.isLoading && createProject.mutate({ name })
-            }
+        <div className="min-h-screen px-4 text-center">
+          <Transition.Child
+            as={Fragment}
+            enter="ease-out duration-300"
+            enterFrom="opacity-0"
+            enterTo="opacity-100"
+            leave="ease-in duration-200"
+            leaveFrom="opacity-100"
+            leaveTo="opacity-0"
           >
-            {createProject.isLoading ? (
-              <Loading color="white" size="sm" />
-            ) : (
-              "Create"
-            )}
-          </Button>
-        </Modal.Footer>
-      </Modal>
-      <div
-        onClick={() => setVisible(true)}
-        className="max-w-3xl bg-zinc-800 p-4 rounded-xl shadow-lg "
-      >
-        <p className="font-bold text-3xl">New Project</p>
-        <p>Create a new project</p>
-      </div>
-    </>
+            <Dialog.Overlay className="fixed inset-0 backdrop-blur" />
+          </Transition.Child>
+          <span
+            className="inline-block h-screen align-middle"
+            aria-hidden="true"
+          >
+            &#8203;
+          </span>
+          <Transition.Child
+            as={Fragment}
+            enter="ease-out duration-300"
+            enterFrom="opacity-0 scale-95"
+            enterTo="opacity-100 scale-100"
+            leave="ease-in duration-200"
+            leaveFrom="opacity-100 scale-100"
+            leaveTo="opacity-0 scale-95"
+          >
+            <div className="inline-block w-full max-w-md p-6 my-8 overflow-hidden text-left align-middle transition-all transform bg-neutral-800 shadow-xl rounded-2xl">
+              <Dialog.Title
+                as="h3"
+                className="text-lg font-medium leading-6 text-white"
+              >
+                New Project
+              </Dialog.Title>
+
+              <div className="mt-2 flex flex-col">
+                <label className="text-sm text-bold mb-1">Name</label>
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="bg-neutral-800 block border border-neutral-700 rounded-md py-2 px-3 shadow-sm focus:outline-none"
+                />
+              </div>
+
+              <div className="mt-4">
+                <button
+                  type="button"
+                  className="inline-flex justify-center px-4 py-2 text-sm font-medium  border border-transparent rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 text-white bg-blue-500"
+                  onClick={() => createProject.mutate({ name })}
+                  disabled={createProject.isLoading}
+                >
+                  {!createProject.isLoading ? (
+                    "Create Project"
+                  ) : (
+                    <FontAwesomeIcon
+                      icon={faCircleNotch}
+                      size="2x"
+                      className="animate-spin text-white"
+                    />
+                  )}
+                </button>
+              </div>
+            </div>
+          </Transition.Child>
+        </div>
+      </Dialog>
+    </Transition>
+  );
+};
+
+const ProjectRow: FC<{ id: string }> = ({ id }) => {
+  const project = trpc.useQuery(["projects.get", { id }]);
+
+  return (
+    <Link
+      href={{
+        pathname: "/app/projects/[projectID]/settings",
+        query: { projectID: id },
+      }}
+    >
+      <a className="px-5 py-3 bg-neutral-800 hover:bg-neutral-700 cursor-pointer flex items-center gap-5 first:rounded-t-lg last:rounded-b-lg">
+        <div>
+          <p className="font-bold">{project.data?.name}</p>
+          <p className="text-xs text-neutral-400">
+            {project.data?._count.apps} App
+            {project.data?._count.apps !== 1 ? "s" : ""} •{" "}
+            {project.data?._count.members} Member
+            {project.data?._count.members !== 1 ? "s" : ""}
+          </p>
+        </div>
+      </a>
+    </Link>
   );
 };
 
@@ -106,15 +127,30 @@ const Projects = () => {
   const projects = trpc.useQuery(["projects.all"], {
     enabled: authenticated,
   });
+  const [showNewProject, setShowNewProject] = useState(false);
 
   return (
-    <div className="p-5">
-      <h1 className="font-black text-4xl mb-5">Projects</h1>
-      <div className="flex gap-5">
-        {projects.data?.map((id) => (
-          <ProjectCard id={id} />
-        ))}
-        <NewProject />
+    <div className="flex min-h-screen">
+      <div className="flex flex-col gap-3 flex-1 p-5">
+        <div className="flex items-center">
+          <h1 className="font-bold text-xl">Projects</h1>
+          <button
+            type="button"
+            className="hover:text-blue-500 ml-auto text-xl"
+            onClick={() => setShowNewProject(true)}
+          >
+            <FontAwesomeIcon icon={faPlus} />
+          </button>
+        </div>
+        <div className="flex flex-col flex-1 divide-y-[0.75px] divide-neutral-700">
+          {projects.data?.map((id) => (
+            <ProjectRow key={id} id={id} />
+          ))}
+          <NewProject
+            isOpen={showNewProject}
+            closeModal={() => setShowNewProject(false)}
+          />
+        </div>
       </div>
     </div>
   );

@@ -53,6 +53,9 @@ export const projects = trpc
         where: {
           id: projectID,
         },
+        include: {
+          _count: true,
+        },
       });
 
       if (!project) throw new TRPCError({ code: "NOT_FOUND" });
