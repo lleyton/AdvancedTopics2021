@@ -2,9 +2,16 @@
 ARG VARIANT=16-bullseye
 FROM mcr.microsoft.com/vscode/devcontainers/javascript-node:0-${VARIANT}
 
-# [Optional] Uncomment this section to install additional OS packages.
-# RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
-#     && apt-get -y install --no-install-recommends <your-package-list-here>
+RUN curl -sSL "https://github.com/buildpacks/pack/releases/download/v0.24.0/pack-v0.24.0-linux.tgz" | tar -C /usr/local/bin/ --no-same-owner -xzv pack
+
+RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
+    && apt-get -y install --no-install-recommends software-properties-common
+
+RUN curl -fsSL https://apt.releases.hashicorp.com/gpg | apt-key add -
+RUN apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main"
+
+RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
+    && apt-get -y install --no-install-recommends nomad
 
 # [Optional] Uncomment if you want to install an additional version of node using nvm
 # ARG EXTRA_NODE_VERSION=10

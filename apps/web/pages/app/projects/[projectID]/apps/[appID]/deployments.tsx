@@ -3,34 +3,67 @@ import { FC } from "react";
 import AppSidebar from "../../../../../../components/AppSidebar";
 import { trpc } from "../../../../../../util/trpc";
 
+type DeploymentType = "PREVIEW" | "PRODUCTION";
+type DeploymentStatus = "PENDING" | "DEPLOYING" | "ACTIVE" | "FAILED" | "DEAD";
+
 const DepolymentRow: FC<{
-  // status;
-  // type;
+  status: DeploymentStatus;
+  type: DeploymentType;
   commitID: string;
   branch: string;
   commitMessage: string;
-}> = ({ commitID, branch, commitMessage }) => {
+}> = ({ commitID, branch, commitMessage, status, type }) => {
   return (
     <div className="px-5 py-3 bg-neutral-800 hover:bg-neutral-700 cursor-pointer flex items-center gap-5 first:rounded-t-lg last:rounded-b-lg">
       <span className="flex h-3 w-3 relative">
-        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
-        <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500" />
+        <span
+          className={`absolute inline-flex h-full w-full rounded-full opacity-75 ${
+            status === "PENDING"
+              ? "bg-yellow-500"
+              : status === "ACTIVE"
+              ? "bg-green-500 animate-ping"
+              : status === "DEAD"
+              ? "bg-neutral-500"
+              : status === "DEPLOYING"
+              ? "bg-yellow-500 animate-ping"
+              : status === "FAILED"
+              ? "bg-red-500"
+              : ""
+          }`}
+        />
+        <span
+          className={`relative inline-flex rounded-full h-3 w-3 ${
+            status === "PENDING"
+              ? "bg-yellow-500"
+              : status === "ACTIVE"
+              ? "bg-green-500"
+              : status === "DEAD"
+              ? "bg-neutral-500"
+              : status === "DEPLOYING"
+              ? "bg-yellow-500"
+              : status === "FAILED"
+              ? "bg-red-500"
+              : ""
+          }`}
+        />
       </span>
 
       <div>
         <p className="font-bold">{commitMessage}</p>
         <p className="text-xs text-neutral-400">
-          {commitID.slice(0, 7)} • {branch}
-          {/* {model === "LIGHT"
-            ? "Light"
-            : model === "BASIC"
-            ? "Basic"
-            : model === "PLUS"
-            ? "Plus"
-            : model === "UBER"
-            ? "Über"
-            : ""}{" "}
-          • 10 Replicas */}
+          {commitID.slice(0, 7)} • {branch} •{" "}
+          {type === "PREVIEW" ? "Preview" : "Production"} •{" "}
+          {status === "PENDING"
+            ? "Pending"
+            : status === "ACTIVE"
+            ? "Active"
+            : status === "DEAD"
+            ? "Dead"
+            : status === "DEPLOYING"
+            ? "Deploying"
+            : status === "FAILED"
+            ? "Failed"
+            : ""}
         </p>
       </div>
     </div>
@@ -67,6 +100,8 @@ const Deployments = () => {
               commitID={app.commitID}
               commitMessage={app.commitMessage}
               branch={app.branch}
+              type={app.type}
+              status={app.status}
             />
           ))}
         </div>

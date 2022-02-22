@@ -1,4 +1,4 @@
-import { Queue, Worker, QueueEvents, QueueScheduler } from "bullmq";
+import { Queue, Worker, QueueEvents, QueueScheduler, Job } from "bullmq";
 import git from "isomorphic-git";
 import http from "isomorphic-git/http/node";
 import { prisma } from "./prisma";
@@ -113,7 +113,7 @@ const generateJob = ({
   variables: Record<string, string>;
 }) => ({
   ID: id,
-  Datacenters: ["hel-1"],
+  Datacenters: ["dc1"],
   TaskGroups: [
     {
       Name: "app",
@@ -133,24 +133,24 @@ const generateJob = ({
             image: `registry.sys.innatical.cloud/${image}:latest`,
           },
           Env: variables,
-          Services: [
-            {
-              Name: id,
-              PortLabel: "http",
-              Tags: ["inngress"],
-              Checks: [
-                {
-                  Name: "alive",
-                  Type: "tcp",
-                  Interval: 10000000000,
-                  Timeout: 2000000000,
-                },
-              ],
-              Meta: {
-                domain,
-              },
-            },
-          ],
+          // Services: [
+          //   {
+          //     Name: id,
+          //     PortLabel: "http",
+          //     Tags: ["inngress"],
+          //     Checks: [
+          //       {
+          //         Name: "alive",
+          //         Type: "tcp",
+          //         Interval: 10000000000,
+          //         Timeout: 2000000000,
+          //       },
+          //     ],
+          //     Meta: {
+          //       domain,
+          //     },
+          //   },
+          // ],
           Resources: {
             CPU: 100,
             MemoryMB: 256,
@@ -176,84 +176,89 @@ const generateJob = ({
 new Worker(
   "deploy",
   async (job) => {
-    const { data } = job;
-    const deployment = await prisma.deployment.findUnique({
-      where: {
-        id: data,
-      },
-      include: {
-        app: true,
-      },
-    });
+    try {
+      const { data } = job;
+      const deployment = await prisma.deployment.findUnique({
+        where: {
+          id: data,
+        },
+        include: {
+          app: true,
+        },
+      });
 
-    if (!deployment) return;
+      if (!deployment) return;
 
-    const tmpPath = path.join("/tmp", deployment.id);
+      const tmpPath = path.join("/tmp", deployment.id);
 
-    await git.clone({
-      fs,
-      http,
-      dir: tmpPath,
-      url: deployment.app.repo,
-    });
+      await git.clone({
+        fs,
+        http,
+        dir: tmpPath,
+        url: deployment.app.repo,
+      });
 
-    await git.checkout({
-      fs,
-      dir: tmpPath,
-      ref: deployment.commitID,
-    });
+      await git.checkout({
+        fs,
+        dir: tmpPath,
+        ref: deployment.commitID,
+      });
 
-    const rawBuildVariables = await prisma.variable.findMany({
-      where: {
-        appID: deployment.appID,
-        scope: deployment.type,
-        usage: "BUILD",
-      },
-    });
+      const rawBuildVariables = await prisma.variable.findMany({
+        where: {
+          appID: deployment.appID,
+          scope: deployment.type,
+          usage: "BUILD",
+        },
+      });
 
-    const tmpEnvPath = path.join("/tmp", deployment.id + ".env");
+      const tmpEnvPath = path.join("/tmp", deployment.id + ".env");
 
-    if (rawBuildVariables.length > 0) {
-      await promisesFs.writeFile(
-        tmpEnvPath,
-        rawBuildVariables.map((v) => v.name + "=" + v.value).join("\n")
+      if (rawBuildVariables.length > 0) {
+        await promisesFs.writeFile(
+          tmpEnvPath,
+          rawBuildVariables.map((v) => v.name + "=" + v.value).join("\n")
+        );
+      }
+
+      // TODO: So fucking sketch but it works
+      await exec(
+        `pack build ${deployment.id} -B paketobuildpacks/builder:full ${
+          rawBuildVariables.length > 0 ? "--env-file " + tmpEnvPath : ""
+        }`,
+        { cwd: tmpPath }
       );
+      await exec(
+        `docker tag ${deployment.id}:latest registry.sys.innatical.cloud/${deployment.id}:latest`
+      );
+      await exec(
+        `docker push registry.sys.innatical.cloud/${deployment.id}:latest`
+      );
+
+      const rawRunVariables = await prisma.variable.findMany({
+        where: {
+          appID: deployment.appID,
+          scope: deployment.type,
+          usage: "RUN",
+        },
+      });
+
+      const runVariables = Object.fromEntries(
+        rawRunVariables.map((v) => [v.name, v.value])
+      );
+
+      await nomad.post("/jobs", {
+        Job: generateJob({
+          id: deployment.id,
+          domain: deployment.id + ".identifier.app",
+          image: deployment.id,
+          variables: runVariables,
+        }),
+      });
+    } catch (e) {
+      console.error(e);
+      throw e;
     }
-
-    // TODO: So fucking sketch but it works
-    await exec(
-      `pack build ${deployment.id} -B paketobuildpacks/builder:full ${
-        rawBuildVariables.length > 0 ? "--env-file " + tmpEnvPath : ""
-      }`,
-      { cwd: tmpPath }
-    );
-    await exec(
-      `docker tag ${deployment.id}:latest registry.sys.innatical.cloud/${deployment.id}:latest`
-    );
-    await exec(
-      `docker push registry.sys.innatical.cloud/${deployment.id}:latest`
-    );
-
-    const rawRunVariables = await prisma.variable.findMany({
-      where: {
-        appID: deployment.appID,
-        scope: deployment.type,
-        usage: "RUN",
-      },
-    });
-
-    const runVariables = Object.fromEntries(
-      rawRunVariables.map((v) => [v.name, v.value])
-    );
-
-    await nomad.post("/jobs", {
-      Job: generateJob({
-        id: deployment.id,
-        domain: deployment.id + ".identifier.app",
-        image: deployment.id,
-        variables: runVariables,
-      }),
-    });
   },
   {
     connection: {
@@ -263,12 +268,12 @@ new Worker(
   }
 );
 
-deployQueueEvents.on("failed", async (job) => {
-  const { data } = job as any;
+deployQueueEvents.on("failed", async (j) => {
+  const job = await Job.fromId(deployQueue, j.jobId);
 
   await prisma.deployment.update({
     where: {
-      id: data,
+      id: job?.data,
     },
     data: {
       status: "FAILED",
@@ -276,12 +281,12 @@ deployQueueEvents.on("failed", async (job) => {
   });
 });
 
-deployQueueEvents.on("completed", async (job) => {
-  const { data } = job as any;
+deployQueueEvents.on("completed", async (j) => {
+  const job = await Job.fromId(deployQueue, j.jobId);
 
   await prisma.deployment.update({
     where: {
-      id: data,
+      id: job?.data,
     },
     data: {
       status: "ACTIVE",
