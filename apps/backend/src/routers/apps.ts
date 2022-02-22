@@ -97,7 +97,11 @@ export const apps = trpc
     input: z.object({
       projectID: z.string(),
       name: z.string().max(32),
-      repo: z.string().max(128),
+      repo: z
+        .string()
+        .max(128)
+        .url()
+        .regex(/^https:\/\/.+/),
       model: z.enum(["LIGHT", "BASIC", "PLUS", "UBER"]),
       minReplicas: z.number().int().min(1),
       maxReplicas: z.number().int().min(1),

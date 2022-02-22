@@ -1,4 +1,4 @@
-import { Queue, Worker, QueueEvents } from "bullmq";
+import { Queue, Worker, QueueEvents, QueueScheduler } from "bullmq";
 import git from "isomorphic-git";
 import http from "isomorphic-git/http/node";
 import { prisma } from "./prisma";
@@ -29,10 +29,16 @@ const deployQueueEvents = new QueueEvents("deploy", {
     port: parseInt(process.env["REDIS_PORT"]!),
   },
 });
+new QueueScheduler("git", {
+  connection: {
+    host: process.env["REDIS_HOST"]!,
+    port: parseInt(process.env["REDIS_PORT"]!),
+  },
+});
 
 new Worker(
   "git",
-  async (job) => {
+  async () => {
     const apps = await prisma.app.findMany();
 
     apps.forEach(async (app) => {

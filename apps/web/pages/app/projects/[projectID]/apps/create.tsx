@@ -211,7 +211,7 @@ const ThirdStage: FC<{
     SetStateAction<{
       minReplicas?: number;
       maxReplicas?: number;
-      model?: "LIGHT" | "BASIC" | "PLUS" | "UBER";
+      model: "LIGHT" | "BASIC" | "PLUS" | "UBER";
     }>
   >;
   submit: () => void;
@@ -343,8 +343,8 @@ const Create = () => {
   const [specs, setSpecs] = useState<{
     minReplicas?: number;
     maxReplicas?: number;
-    model?: "LIGHT" | "BASIC" | "PLUS" | "UBER";
-  }>({});
+    model: "LIGHT" | "BASIC" | "PLUS" | "UBER";
+  }>({ model: "LIGHT" });
 
   const trpcContext = trpc.useContext();
 
@@ -369,13 +369,14 @@ const Create = () => {
       specs={specs}
       setSpecs={setSpecs}
       submit={() => {
-        const fullURL = `https://${repo?.username ? repo.username : ""}${
-          repo?.password ? ":" + repo.password : ""
-        }${repo?.username ? "@" : ""}${repo.repo}`;
+        const fullURL = new URL(repo.repo!);
+        if (repo?.username) fullURL.username = repo.username;
+        if (repo?.password) fullURL.password = repo.password;
+
         createApp.mutate({
           projectID: router.query["projectID"] as string,
           name,
-          repo: fullURL,
+          repo: fullURL.toString(),
           minReplicas: specs.minReplicas!,
           maxReplicas: specs.maxReplicas!,
           model: specs.model!,
